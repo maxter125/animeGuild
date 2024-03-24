@@ -1,12 +1,14 @@
 package com.spring.Ibento.controller;
 
+import com.spring.Ibento.Utility.ResponseHelper;
 import com.spring.Ibento.model.User;
 import com.spring.Ibento.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -14,17 +16,17 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    // Endpoint to get all users
     @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return ResponseHelper.createResponse(users, HttpStatus.OK);
     }
 
-    // Endpoint to get a user by ID
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) throws Exception {
+    public ResponseEntity<User> getUserById(@PathVariable int id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new Exception("User not found with id " + id));
+                .map(user -> ResponseHelper.createResponse(user, HttpStatus.OK))
+                .orElseGet(() -> ResponseHelper.createErrorResponse("User not found with id " + id, HttpStatus.NOT_FOUND));
     }
 
     // Other endpoints for user management (e.g., create, update, delete) can be added here

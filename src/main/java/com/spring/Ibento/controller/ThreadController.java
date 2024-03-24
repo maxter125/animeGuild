@@ -2,6 +2,8 @@ package com.spring.Ibento.controller;
 
 import com.spring.Ibento.repository.ThreadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,7 +14,6 @@ public class ThreadController {
 
     @Autowired
     private ThreadRepository threadRepository;
-
     // Endpoint to get all threads
     @GetMapping
     public List<Thread> getAllThreads() {
@@ -21,10 +22,29 @@ public class ThreadController {
 
     // Endpoint to get a thread by ID
     @GetMapping("/{id}")
-    public Thread getThreadById(@PathVariable int id) throws Exception {
+    public ResponseEntity<Thread> getThreadById(@PathVariable int id) {
         return threadRepository.findById(id)
-                .orElseThrow(() -> new Exception("Thread not found with id " + id));
+                .map(thread -> ResponseEntity.ok().body(thread))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Other endpoints for thread management (e.g., create, update, delete) can be added here
+    // Endpoint to add a new thread
+    @PostMapping
+    public ResponseEntity<Thread> addThread(@RequestBody Thread thread) {
+        Thread newThread = threadRepository.save(thread);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newThread);
+    }
+
+    // Endpoint to delete a thread by ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteThreadById(@PathVariable int id) {
+        if (threadRepository.existsById(id)) {
+            threadRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Other endpoints for thread management (e.g., update) can be added here
 }
